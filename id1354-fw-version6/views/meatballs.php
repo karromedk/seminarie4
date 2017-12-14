@@ -8,6 +8,51 @@ $recipe= 'meatballs';
     <title>Meatballs</title>
     <link rel="stylesheet" type="text/css" href="/id1354-fw-version6/resources/css/tastyy.css">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+  var after_post_handler= function(data){
+    $("#message").val("");
+    //hämtar kommentarer när man postat en ny kommentar
+    load_comments();
+  };
+  //hämtar kommentarerna
+  var load_comments=function(){
+    $.get("AjaxComment?recipe=meatballs", 
+      function(data){
+
+        $("#placeholder").html(data);
+
+      })
+
+  };
+
+  $(document).ready(function()
+  {
+    load_comments();
+
+    //när man sickat en kommentar
+    $('#recipe_comment_form').submit(function(event)
+    {
+      event.preventDefault();
+
+      $.post("MeatballPage", 
+      {
+        "recipe": "meatballs",
+        "message": $("#message").val()
+      }, after_post_handler);
+    });
+  });
+
+  //radera kommentar
+  $(document).on("click",".buttonremove",function(){
+      var holder=$(this).parent().parent();
+      var cid= holder.attr("data-cid");
+
+      $.get("MeatballPage?delete="+cid, function(data){
+        holder.remove();
+      });
+    });
+</script>
   </head>
   <body> 
   <ul>
@@ -59,40 +104,23 @@ Peel the potatoes and cut into pieces. Boil the soft in lightly salted water for
 
       if ($this->session->get('uid') !==false) {
         ?>
-        <form action='MeatballPage' method='POST'>
-          <input type='hidden' name='recipe' value='meatballs' />
-            <textarea name='message' placeholder='Enter text here...'></textarea>
+        <form id="recipe_comment_form" method='POST'>
+            <textarea id='message' placeholder='Enter text here...'></textarea>
             <br>
             <br>
-            <button type='submit' name='comment'>Comment </button>
+            <button type='submit' id="comment">Comment </button>
           </form>
           <?php
           } else {
             echo "You can not comment since you are not logged in!";
           }
-
-echo '<pre>';
-foreach ($comments as $comment)
-{
-  ?>
-    <div class="c1">
-      <p>
-        <?php echo $comment['date']; ?><br />
-        <?php echo $comment['uid']; ?><br />
-        <?php echo nl2br($comment['message']);
-
-        if($this->session->get('uid')===$comment['uid']){
-          echo '<a href="MeatballPage?delete=' . $comment['cid'] . '">Delete</a>';
-        }
-        
-        ?>
-      </p>
-    </div>
-  <?php
-}
-echo '</pre>';
-
 ?>
+
+<div id="placeholder">
+  </div>
+
+    </div>
+
   	</div>
   </section>
   </body>
